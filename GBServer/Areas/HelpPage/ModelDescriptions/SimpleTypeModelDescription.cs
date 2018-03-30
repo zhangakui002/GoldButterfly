@@ -1,0 +1,6 @@
+namespace GBServer.Areas.HelpPage.ModelDescriptions
+{
+    public class SimpleTypeModelDescription : ModelDescription
+    {
+    }
+}

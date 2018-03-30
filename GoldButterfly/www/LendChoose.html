@@ -1,0 +1,82 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>GB</title>
+
+
+    <meta charset="UTF-8">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <script type="text/javascript" src="scripts/jquery.min.js"></script>
+
+
+    <link rel="stylesheet" type="text/css" href="css/themes/bootstrap/easyui.css">
+    <link rel="stylesheet" type="text/css" href="css/themes/mobile.css">
+    <link rel="stylesheet" type="text/css" href="css/themes/icon.css">
+    <script type="text/javascript" src="scripts/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="scripts/jquery.easyui.mobile.js"></script>
+
+    <!--<link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css">
+    <script src="/scripts/jquery.mobile-1.4.5.min.js"></script>-->
+    <script type="text/javascript" src="cordova.js"></script>
+    <script src="scripts/AppGlobal.js"></script>
+
+    <script src="scripts/jquery.cookie.js"></script>
+
+    <script>
+
+       
+
+        
+        $(function () {
+
+            $('#btnProductReturn').bind('click', function () {
+                MaskUtil.mask();
+                $(location).attr('href', 'ChooseTask.html?type=lend');
+            });
+
+            $('#btnSaleReturn').bind('click', function () {
+                MaskUtil.mask();
+                $(location).attr('href', 'ChooseTask.html?type=return');
+            });
+
+        });
+
+    </script>
+</head>
+<body>
+
+
+    <div  class="easyui-navpanel">
+        <header>
+            <div class="m-toolbar">
+                <div class="m-title"></div>
+                <div class="m-left">
+                    <a href="#" class="easyui-linkbutton m-back" data-options="plain:true,outline:true,back:true">返回</a>
+                </div>
+            </div>
+        </header>
+
+        <div style="padding:0 20px;margin-top:40px;">
+
+            <div style="text-align:center;margin-top:30px">
+                <a id="btnProductReturn" href="javascript:void(0)" class="easyui-linkbutton" style="width:100%;height:40px; font-size:16px;"><span style="font-size:16px">借出产品</span></a>
+            </div>
+
+            <div style="text-align:center;margin-top:30px">
+                <a id="btnSaleReturn" href="javascript:void(0)" class="easyui-linkbutton" style="width:100%;height:40px; font-size:16px;"><span style="font-size:16px">归还产品</span></a>
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+  
+
+</body>
+</html>

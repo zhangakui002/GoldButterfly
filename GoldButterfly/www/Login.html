@@ -1,0 +1,182 @@
+﻿<!doctype html>
+<html>
+<head>
+    <title>登陆</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <script type="text/javascript" src="scripts/jquery.min.js"></script>
+
+
+    <link rel="stylesheet" type="text/css" href="css/themes/bootstrap/easyui.css">
+    <link rel="stylesheet" type="text/css" href="css/themes/mobile.css">
+    <link rel="stylesheet" type="text/css" href="css/themes/icon.css">
+    <script type="text/javascript" src="scripts/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="scripts/jquery.easyui.mobile.js"></script>
+
+    <!--<link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css">
+    <script src="/scripts/jquery.mobile-1.4.5.min.js"></script>-->
+
+    <script src="cordova.js"></script>
+    <script src="scripts/AppGlobal.js"></script>
+    <script src="scripts/md5.min.js"></script>
+    <script src="scripts/jquery.cookie.js"></script>
+
+    <script>
+
+        function CheckFail() {
+            GBMessager.Alert('Failed to initializing device scanner counter: IO error', function () {
+                App.Exit();
+            });
+        }
+
+        function CheckMD5(sunccess) {
+            var ph = new parmHelper();
+            ph.Add('PDANumber', md5(device.uuid));
+
+            var prm = new requestObject();
+            prm.Data = ph.KeyValueArray;
+            prm.RequestName = 'CheckMD5';
+
+
+            MaskUtil.mask();
+
+            AjaxGB('post', prm, function (data) {
+
+                if (data.Status == 0) {
+                    CheckFail();
+                   
+                    return;
+                }
+                else {
+                    if (data.Data[0].HasKey == 0) {
+                        //失败
+                        CheckFail();
+                    } else {
+                        sunccess();
+                    }
+                }
+                
+
+            }, function () {
+                CheckFail();
+            })
+        }
+
+        function CheckLogin() {
+            var value = $('#txtUserno').textbox('getText');
+            console.log(value);
+
+            if (value == '') {
+                $('#txtUserno').textbox('setText', '');
+                return;
+            }
+
+            if (value.split(',')[0] != 1) {
+                GBMessager.Alert('二维码不正确', function () {
+                    focusTextBox('txtUserno');
+                });
+
+                $('#txtUserno').textbox('setText', '');
+                return;
+            }
+
+            var ph = new parmHelper();
+            ph.Add('FNumber', value.split(',')[1]);
+            ph.Add('FPSW', value.split(',')[3]);
+
+            var prm = new requestObject();
+            prm.Data = ph.KeyValueArray;
+            prm.RequestName = 'GetUser';
+            MaskUtil.mask();
+
+            LazyAJax(prm, function (data) {
+                MaskUtil.mask();
+                localStorage['username'] = data.Data[0].FName;
+                localStorage['userno'] = data.Data[0].FitemID;
+                localStorage['usernumber'] = data.Data[0].FNumber;
+                $(location).attr('href', 'Main.html');
+            }, function () {
+                console.log('focus after error');
+                focusTextBox('txtUserno');
+            });
+
+            $('#txtUserno').textbox('setText', '');
+
+        }
+
+        function Init() {
+
+
+            var UserNoEvents = {
+                input: function (obj) {
+                    CheckMD5(CheckLogin);
+                }
+            };
+
+            $('#txtUserno').textbox({ events: UserNoEvents });
+
+        }
+
+        $(function () {
+
+            $('#btnSetting').bind('click', function () {
+                $('#dlg1').dialog('open').dialog('center');
+                $('#txtServerUrl').textbox('setText', GBSetting.GetServerURL());
+            });
+
+            $('#btnSave').bind('click', function () {
+                localStorage['serverurl'] = $('#txtServerUrl').textbox('getText');
+                $('#dlg1').dialog('close');
+            });
+
+            Init();
+            focusTextBox('txtUserno');
+
+
+        });
+    </script>
+
+</head>
+    <body>
+        <div class="easyui-navpanel">
+            <header>
+                <div class="m-toolbar">
+                    <span class="m-title">登录</span>
+                    <div class="m-left">
+                        <a href="javascript:void(0)" class="easyui-linkbutton" id="btnSetting" data-options="iconCls:'icon-edit',plain:true"></a>
+                    </div>
+
+                </div>
+            </header>
+    
+            <div style="padding:0 20px;margin-top:40px;">
+                <div style="margin-bottom:10px">
+                    <input class="easyui-textbox" id="txtUserno" data-options="prompt:'账号'" style="width:100%;height:38px">
+                </div>
+                <!--<div>
+                    <input class="easyui-passwordbox" id="txtPassword" data-options="prompt:'密码',showEye:false" style="width:100%;height:38px">
+                </div>
+                <div style="text-align:center;margin-top:30px">
+                    <a href="#" id="btnLogin" class="easyui-linkbutton" style="width:100%;height:40px"><span style="font-size:16px">登录</span></a>
+                </div>-->
+                
+            </div>
+
+
+            <div id="dlg1" class="easyui-dialog" style="padding:20px 6px;width:80%;" data-options="inline:true,modal:true,closed:true,title:'Login'">
+                <div style="margin-bottom:10px">
+                    <input class="easyui-textbox" id="txtServerUrl" data-options="prompt:'IP:Port',label:'服务器地址:'" style="width:100%;height:30px">
+                </div>
+                
+                    <a href="javascript:void(0)" id="btnSave" class="easyui-linkbutton" style="width:48%;height:35px" >保存</a>
+                    <a href="javascript:void(0)" class="easyui-linkbutton" style="width:48%;height:35px" onclick="$('#dlg1').dialog('close')">取消</a>
+               
+            </div>
+
+        </div>
+    </body>
+</html>

@@ -1,0 +1,442 @@
+﻿<!doctype html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width" />
+        <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=0.8">
+        <meta http-equiv="Access-Control-Allow-Origin" content="*">
+
+        <title>GB</title>
+        <link rel="stylesheet" type="text/css" href="css/themes/bootstrap/easyui.css">
+        <link rel="stylesheet" type="text/css" href="css/themes/mobile.css">
+        <link rel="stylesheet" type="text/css" href="css/themes/icon.css">
+        <script type="text/javascript" src="scripts/jquery.min.js"></script>
+        <script type="text/javascript" src="scripts/jquery.easyui.min.js"></script>
+        <script type="text/javascript" src="scripts/jquery.easyui.mobile.js"></script>
+
+        <script type="text/javascript" src="cordova.js"></script>
+        <script src="scripts/AppGlobal.js"></script>
+
+        <script>
+             
+
+
+
+            
+
+            Red = {};
+            function Init() {
+
+                $('#dg').datagrid({
+                   //data: data.Data
+                });
+
+                var StorageEvent = {
+                    blur: function () {
+                        if ($('#txtStorage').textbox('getText') == '' && Red.storageName) {
+                            $('#txtStorage').textbox('setText', Red.storageName );
+                        }
+                    },
+                    focus: function () {
+                        $('#txtStorage').textbox('setText', '');
+                    },
+                    input: function (obj) {
+                        var value = $('#txtStorage').textbox('getText');
+                        console.log(value);
+
+                        if (value == '') {
+                            $('#txtStorage').textbox('setText', '');
+                            return;
+                        }
+
+                        if (value.split(',')[0] != 2) {
+                            GBMessager.Alert('二维码不正确', function () {
+                                focusTextBox('txtStorage');
+                            });
+
+                            $('#txtStorage').textbox('setText', '');
+                            return;
+                        }
+
+
+                        var ph = new parmHelper();
+                        ph.Add('FItemID', value.split(',')[1]);
+                        ph.Add('Type', 1);
+
+                        var prm = new requestObject();
+                        prm.Data = ph.KeyValueArray;
+                        prm.RequestName = 'GetStorage';
+
+                        MaskUtil.mask();
+                        LazyAJax(prm, function (data) {
+                            MaskUtil.mask();
+                            Red.storageNo = data.Data[0].FItemID;
+                            Red.storageName= data.Data[0].FName;
+                            //$(obj.target).blur();
+                            focusTextBox('txtPlace');
+                            MaskUtil.unmask();
+                        }, function () {
+                            focusTextBox('txtStorage');
+                        });
+                        $('#txtStorage').textbox('setText', '');
+                    }
+                };
+                var PlaceEvent = {
+                    blur: function () {
+                        if ($('#txtPlace').textbox('getText') == '' && Red.placeName) {
+                            $('#txtPlace').textbox('setText', Red.placeName);
+                        }
+                    },
+                    focus: function () {
+                        $('#txtPlace').textbox('setText', '');
+                    },
+                    input: function (obj) {
+                        var value = $('#txtPlace').textbox('getText');
+                        console.log(value);
+
+                        if (value == '') {
+                            //Storage.Place = value;
+                            //$('#txtStorage').textbox('setText', '');
+                            return;
+                        }
+                        //Storage.Place = value;
+
+                        if (value.split(',')[0] != 5) {
+                            GBMessager.Alert('二维码不正确', function () {
+                                focusTextBox('txtPlace');
+                            });
+
+                            $('#txtPlace').textbox('setText', '');
+                            return;
+                        }
+
+
+                        var ph = new parmHelper();
+                        ph.Add('FItemID', value.split(',')[1]);
+                        ph.Add('Type', 2);
+
+                        var prm = new requestObject();
+                        prm.Data = ph.KeyValueArray;
+                        prm.RequestName = 'GetStorage';
+
+                        MaskUtil.mask();
+                        LazyAJax(prm, function (data) {
+                            MaskUtil.mask();
+                            Red.placeNo= data.Data[0].FSPID;
+                            Red.placeName= data.Data[0].FName;
+                            //$.mobile.go('#p1');
+                            //$(obj.target).blur();
+                            focusTextBox('txtScan');
+                            MaskUtil.unmask();
+                        }, function () {
+                            focusTextBox('txtPlace');
+                        });
+                        $('#txtPlace').textbox('setText', '');
+                    }
+                };
+                var ScanEvent = {
+                    input: function (obj) {
+                        var value = $('#txtScan').textbox('getText');
+                        console.log(value);
+
+                        if (value == '') {
+                            $('#txtScan').textbox('setText', '');
+                            return;
+                        }
+
+                        if (value.split(',')[0] != 4) {
+                            GBMessager.Alert('二维码不正确', function () {
+                                focusTextBox('txtScan');
+                            });
+
+                            $('#txtScan').textbox('setText', '');
+                            return;
+                        }
+
+
+                        var ph = new parmHelper();
+                  
+                        ph.Add('SN', value.split(',')[1]);
+                        ph.Add('PDANumber', device.uuid);
+                
+
+                        var prm = new requestObject();
+                        prm.Data = ph.KeyValueArray;
+
+                        if (Red.Type == 'product') {
+                            prm.RequestName = 'ScanInRedRPC';
+                        } else if (Red.Type == 'sale') {
+                            prm.RequestName = 'ScanInRedFH';
+                        }
+
+                        MaskUtil.mask();
+                        LazyAJax(prm, function (data) {
+                            console.log(data);
+                            if (data.Data[0].ErrCode==0) {
+                                $('#dg').datagrid({
+                                    data: data.Data
+                                });
+                            } else {
+                                GBMessager.Alert(data.Data[0].ErrMsg, function () {
+                                    focusTextBox('txtScan');
+                                });
+                            }
+                            //$(obj.target).focus();
+                        });
+                        $('#txtScan').textbox('setText', '');
+                    }
+                };
+                var DeptEvent = {
+                    blur: function () {
+                        if ($('#txtDep').textbox('getText') == '' && Red.deptName) {
+                            $('#txtDep').textbox('setText', Red.deptName);
+                        }
+                    },
+                    focus: function () {
+                        $('#txtDep').textbox('setText', '');
+                    },
+                    input: function (obj) {
+                        var value = $('#txtDep').textbox('getText');
+                        console.log(value);
+
+                        if (value == '') {
+                            //Storage.Place = value;
+                            //$('#txtStorage').textbox('setText', '');
+                            return;
+                        }
+                        //Storage.Place = value;
+
+                        if (value.split(',')[0] != 6) {
+                            GBMessager.Alert('二维码不正确', function () {
+                                focusTextBox('txtDep');
+                            });
+
+                            $('#txtDep').textbox('setText', '');
+                            return;
+                        }
+
+
+                        var ph = new parmHelper();
+                        ph.Add('FItemID', value.split(',')[1]);
+
+                        var prm = new requestObject();
+                        prm.Data = ph.KeyValueArray;
+                        prm.RequestName = 'GetDep';
+
+                        MaskUtil.mask();
+                        LazyAJax(prm, function (data) {
+                            MaskUtil.mask();
+                            Red.depID = data.Data[0].FItemID;
+                            Red.deptName = data.Data[0].FName;
+                            //$.mobile.go('#p1');
+                            //$(obj.target).blur();
+                            focusTextBox('txtScan');
+                            MaskUtil.unmask();
+                        });
+                        $('#txtDep').textbox('setText', '');
+                    }
+                };
+
+                $('#txtDep').textbox({ events: DeptEvent });
+                $('#txtStorage').textbox({ events: StorageEvent });
+                if (localStorage['storageName']) {
+                    $('#txtStorage').textbox('setText', localStorage['storageName']);
+
+                    Red.storageNo = localStorage['storageNo'];
+                    Red.storageName = localStorage['storageName'];
+                }
+
+                $('#txtPlace').textbox({ events: PlaceEvent });
+                if (localStorage['placeName']) {
+                    $('#txtPlace').textbox('setText', localStorage['placeName']);
+
+                    Red.placeName = localStorage['placeName'];
+                    Red.placeNo = localStorage['placeNo'];
+
+                }
+
+                $('#txtScan').textbox({ events: ScanEvent });
+
+                $('#txtScan').textbox('textbox').focus(); 
+            }
+
+
+            
+
+            $(function () {
+                Red.Type = GetQueryString('type');
+
+                 $('#txtStorage').text('setText', localStorage['storageName']);
+                 $('#txtStorageBin').text('setText', localStorage['placeName']);
+
+
+                 $('#btnSubmit').bind('click', function () {
+                     FormSubimt(1);
+                 });
+
+                 $('#btnCancel').bind('click', function () {
+                     FormSubimt(2);
+                 });
+
+                 $('#btnBack').bind('click', function () {
+                     MaskUtil.mask();
+                     $(location).attr('href', 'Main.html');
+                 });
+
+                 $('#txtOriginNo').html(sessionStorage['BillMID']);
+
+                 function FormSubimt(type)
+                 {
+                     MaskUtil.mask();
+
+
+                     if (!Red.storageNo) {
+                         GBMessager.Alert('请选择仓库');
+                     }
+                     if (!Red.placeNo) {
+                         GBMessager.Alert('请选择仓位');
+                     }
+                     if (!Red.depID) {
+                         GBMessager.Alert('请选择部门');
+                     }
+                  
+
+                     var ph = new parmHelper();
+                     ph.Add('MyFMaker', localStorage['userno']);
+                     ph.Add('MyStockID', Red.storageNo);
+                     ph.Add('MyStockPlaceID', Red.placeNo);
+                     ph.Add('PDANumber', device.uuid);
+                     ph.Add('SubType', type);
+
+
+                     var prm = new requestObject();
+
+                     if (Red.Type == 'product') {
+                         prm.RequestName = 'ScanInSubmitRedRPC';
+                         ph.Add('MyDepID', Red.depID);
+
+                     } else if (Red.Type == 'sale') {
+                         prm.RequestName = 'ScanInSubmitRedFH';
+                     }
+                     prm.Data = ph.KeyValueArray;
+
+                     MaskUtil.mask();
+
+                     LazyAJax(prm, function (data) {
+                         if (data.Data[0].ErrCode == 0) {
+                             GBMessager.Alert(data.Data[0].ErrMsg, function () {
+                                 MaskUtil.mask();
+                                 $(location).attr('href', 'Main.html');
+                             });
+                             // 成功... ...
+                         }
+                         else {
+                             GBMessager.Alert(data.Data[0].ErrMsg, function () {
+                                 focusTextBox('txtScan');
+                             });
+                             //失败... ...
+                         }
+                     });
+                 }
+
+                 Init();
+
+                 focusTextBox('txtScan');
+            });
+
+
+        </script>
+
+
+
+        <style>
+
+            #tableField {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+            #tableField  tr > td:first-child {
+                width:40%;
+                
+            }
+
+            #tableField tr > td:nth-child(2) {
+                text-align: right;
+                width: 50%;
+            }
+
+            #divBtnGroup > div {
+                text-align:center
+            }
+
+        </style>
+    </head>
+    <body>
+
+        <table class="grid" id="tableField" data-options="fit:true;">
+            <tr>
+                <td><label for="txtDep">部门:</label></td>
+                <td>
+                    <input id="txtDep" class="easyui-textbox" style="height:38px" name="txtDep">
+                </td>
+            </tr>
+            
+            <tr>
+                <td>
+                    <label for="txtStorage">仓库:</label>
+                </td>
+                <td>
+                    <input id="txtStorage" class="easyui-textbox" style="height:38px" name="txtStorage" >
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <label for="txtPlace">仓位:</label>
+                </td>
+                <td>
+                    <input id="txtPlace" class="easyui-textbox" style="height:38px" name="txtPlace" >
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <label for="txtScan">扫码框:</label>
+                </td>
+                <td>
+                    <input id="txtScan" name="txtScan" style="height:38px" data-options="prompt:''" class="easyui-textbox" >
+                </td>
+            </tr>
+
+           </table>
+            
+
+            <div style="height:380px;overflow:scroll">
+                <table id="dg" data-options="header:'#hh',singleSelect:true,border:false,fit:true,fitColumns:true,scrollbarSize:0">
+                    <thead>
+                        <tr>
+                            <th data-options="field:'FName',width:80">物料名</th>
+                            <th data-options="field:'FModel',width:100">规格</th>
+                            <th data-options="field:'FQty',width:80,align:'right'">数量</th>
+                            <th data-options="field:'FSQty',width:80,align:'right'">扫描</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        
+        <div id="divBtnGroup">
+            <div>
+                <a href="#" id="btnSubmit" class="easyui-linkbutton" style="width:100px;height:40px;margin-top:20px;"><span style="font-size:16px">提交</span></a>
+
+                <a href="#" id="btnCancel" class="easyui-linkbutton" style="width:100px;height:40px;margin-top:20px; margin-left:10px;"><span style="font-size:16px">取消</span></a>
+
+                <a href="#" id="btnBack" class="easyui-linkbutton"   style="width:100px;height:40px;margin-top:20px;margin-left:10px;"><span style="font-size:16px">返回</span></a>
+
+            </div>
+            
+        </div>
+
+           
+</body>
+</html>

@@ -1,0 +1,353 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>GB</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <script type="text/javascript" src="scripts/jquery.min.js"></script>
+
+
+    <link rel="stylesheet" type="text/css" href="css/themes/bootstrap/easyui.css">
+    <link rel="stylesheet" type="text/css" href="css/themes/mobile.css">
+    <link rel="stylesheet" type="text/css" href="css/themes/icon.css">
+    <script type="text/javascript" src="scripts/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="scripts/jquery.easyui.mobile.js"></script>
+
+    <!--<link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css">
+    <script src="/scripts/jquery.mobile-1.4.5.min.js"></script>-->
+    <script type="text/javascript" src="cordova.js"></script>
+
+    <script src="scripts/AppGlobal.js"></script>
+
+    <script src="scripts/jquery.cookie.js"></script>
+
+    <script>
+
+        Storage = {};
+
+
+
+        function ScanStorage(value)
+        {
+
+
+            console.log(value);
+            if (value == '' || Storage.Storage == value) {
+                Storage.Storage = value;
+                return;
+            }
+            Storage.Storage = value;
+
+            if (value.split(',')[0] != 2) {
+                GBMessager.Alert('二维码不正确');
+
+                $('#txtStorage').textbox('setText', '');
+                return;
+            }
+            
+
+            var ph = new parmHelper();
+            ph.Add('FItemID', value.split(',')[1]);
+            ph.Add('Type', 1);
+
+            var prm = new requestObject();
+            prm.Data = ph.KeyValueArray;
+            prm.RequestName = 'GetStorage';
+
+            MaskUtil.mask();
+            LazyAJax(prm, function (data) {
+                MaskUtil.mask();
+                localStorage['storageNo'] = data.Data[0].FItemID;
+                localStorage['storageName'] = data.Data[0].FName;
+                $.mobile.go('#p3');
+                focusTextBox('txtPlace');
+                MaskUtil.unmask();
+            }, function () {
+                focusTextBox('txtStorage');
+            });
+            $('#txtStorage').textbox('setText', '');
+        }
+
+
+        function ScanPlace(value) {
+
+            if (value == '' || Storage.Place == value) {
+                Storage.Place = value;
+                return;
+            }
+            Storage.Place = value;
+
+            if (value.split(',')[0] != 5) {
+                GBMessager.Alert('二维码不正确');
+
+                $('#txtStorage').textbox('setText', '');
+                return;
+            }
+
+
+            var ph = new parmHelper();
+            ph.Add('FItemID', value.split(',')[1]);
+            ph.Add('Type', 2);
+
+            var prm = new requestObject();
+            prm.Data = ph.KeyValueArray;
+            prm.RequestName = 'GetStorage';
+
+            MaskUtil.mask();
+            LazyAJax(prm, function (data) {
+                MaskUtil.mask();
+                localStorage['placeNo'] = data.Data[0].FSPID;
+                localStorage['placeName'] = data.Data[0].FName;
+                $.mobile.go('#p1');
+            }, function () {
+                focusTextBox('txtPlace');
+            });
+            $('#txtPlace').textbox('setText', '');
+        }
+
+        function Init() {
+            var StorageEvent = {
+                blur: function () {
+                    if ($('#txtStorage').textbox('getText') == '' && localStorage['storageName']) {
+                        $('#txtStorage').textbox('setText', localStorage['storageName']);
+                    }
+                },
+                focus: function () {
+                    $('#txtStorage').textbox('setText', '');
+                },
+                input: function () {
+                    var value = $('#txtStorage').textbox('getText');
+                    console.log(value);
+
+                    if (value == '') {
+                        $('#txtStorage').textbox('setText', '');
+                        return;
+                    }
+
+                    if (value.split(',')[0] != 2) {
+                        GBMessager.Alert('二维码不正确', function () {
+                            focusTextBox('txtStorage');
+                        });
+
+                        $('#txtStorage').textbox('setText', '');
+                        return;
+                    }
+
+
+                    var ph = new parmHelper();
+                    ph.Add('FItemID', value.split(',')[1]);
+                    ph.Add('Type', 1);
+
+                    var prm = new requestObject();
+                    prm.Data = ph.KeyValueArray;
+                    prm.RequestName = 'GetStorage';
+
+                    MaskUtil.mask();
+                    LazyAJax(prm, function (data) {
+                        MaskUtil.mask();
+                        localStorage['storageNo'] = data.Data[0].FItemID;
+                        localStorage['storageName'] = data.Data[0].FName;
+                        $.mobile.go('#p3');
+                        focusTextBox('txtPlace');
+                        MaskUtil.unmask();
+                    });
+                    $('#txtStorage').textbox('setText', '');
+                }
+            };
+            var PlaceEvent = {
+                blur: function () {
+                    if ($('#txtPlace').textbox('getText') == '' && localStorage['placeName']) {
+                       $('#txtPlace').textbox('setText', localStorage['placeName']);
+                    }
+                },
+                focus: function () {
+                    $('#txtPlace').textbox('setText', '');
+                },
+                input: function () {
+                    var value = $('#txtPlace').textbox('getText');
+                    console.log(value);
+
+                    if (value == '') {
+                        Storage.Place = value;
+                        //$('#txtStorage').textbox('setText', '');
+                        return;
+                    }
+                    Storage.Place = value;
+
+                    if (value.split(',')[0] != 5) {
+                        GBMessager.Alert('二维码不正确', function () {
+                            focusTextBox('txtPlace');
+                        });
+
+                        $('#txtPlace').textbox('setText', '');
+                        return;
+                    }
+
+
+                    var ph = new parmHelper();
+                    ph.Add('FItemID', value.split(',')[1]);
+                    ph.Add('Type', 2);
+
+                    var prm = new requestObject();
+                    prm.Data = ph.KeyValueArray;
+                    prm.RequestName = 'GetStorage';
+
+                    MaskUtil.mask();
+                    LazyAJax(prm, function (data) {
+                        MaskUtil.mask();
+                        localStorage['placeNo'] = data.Data[0].FSPID;
+                        localStorage['placeName'] = data.Data[0].FName;
+                        $.mobile.go('#p1');
+                        MaskUtil.unmask();
+                    });
+                    $('#txtPlace').textbox('setText', '');
+                }
+            };
+
+            $('#txtStorage').textbox({ events: StorageEvent });
+            if (localStorage['storageName']) {
+                $('#txtStorage').textbox('setText', localStorage['storageName']);
+            }
+
+            $('#txtPlace').textbox({ events: PlaceEvent });
+            if (localStorage['placeName']) {
+                $('#txtPlace').textbox('setText', localStorage['placeName']);
+            }
+        }
+
+        $(function () {
+            $('#btnNormal').bind('click', function () {
+                MaskUtil.mask();
+
+                var url = encodeURI('NormalChoose.html');
+                $(location).attr('href', url );
+            });
+
+
+            $('#btnLend').bind('click', function () {
+                MaskUtil.mask();
+                $(location).attr('href', 'LendChoose.html');
+            });
+
+
+            $('#btnStorage').bind('click', function () {
+                $.mobile.go('#p2')
+                focusTextBox('txtStorage');
+            });
+
+         
+            $('#btnProductDetail').bind('click', function () {
+                MaskUtil.mask();
+                $(location).attr('href', 'ProductDetail.html');
+            });
+
+            $('#btnOut').bind('click', function () {
+                GBMessager.Confirm('是否确认退出', function (out) {
+                    if (out) {
+                        //navigator.app.exitApp();
+                        App.Exit();
+                    }
+                });
+            });
+
+            $('#btnRed').bind('click', function () {
+                MaskUtil.mask();
+                $(location).attr('href', 'RedChoose.html');
+
+            });
+          
+
+            Init();
+
+        });
+
+    </script>
+</head>
+<body>
+
+
+    <div id="p1" class="easyui-navpanel">
+       
+        <header>
+            <div class="m-toolbar">
+                <span class="m-title">主页</span>
+                <!--<div class="m-right">
+                    <a href="javascript:void(0)" class="easyui-linkbutton" id="btnLogout" >退出</a>
+                </div>-->
+
+            </div>
+        </header>
+
+        <div style="padding:0 20px;margin-top:40px;">
+           
+            <div style="text-align:center;margin-top:15px">
+                <a href="javascript:void(0)" id="btnStorage" class="easyui-linkbutton" style="width:100%;height:40px; font-size:16px;" ><span style="font-size:16px">仓库选择</span></a>
+            </div>
+            <div style="text-align:center;margin-top:15px">
+                <a href="#" id="btnNormal" class="easyui-linkbutton" style="width:100%;height:40px"><span style="font-size:16px">正常出入库</span></a>
+            </div>
+            <div style="text-align:center;margin-top:15px">
+                <a href="#" id="btnRed" class="easyui-linkbutton" style="width:100%;height:40px"><span style="font-size:16px">红字出入库</span></a>
+            </div>
+
+            <div style="text-align:center;margin-top:15px">
+                <a href="#" id="btnLend" class="easyui-linkbutton" style="width:100%;height:40px"><span style="font-size:16px">产品外借</span></a>
+            </div>
+
+
+            <div style="text-align:center;margin-top:15px">
+                <a href="#" id="btnProductDetail" class="easyui-linkbutton" style="width:100%;height:40px"><span style="font-size:16px">查看产品</span></a>
+            </div>
+
+            <div style="text-align:center;margin-top:15px">
+                <a id="btnOut" class="easyui-linkbutton" style="width:100%;height:40px"><span style="font-size:16px">退出</span></a>
+            </div>
+            
+
+        </div>
+    </div>
+
+
+    <div id="p2" class="easyui-navpanel">
+        <header>
+            <div class="m-toolbar">
+                <div class="m-title">仓库</div>
+                <div class="m-left">
+                    <a href="#"  class="easyui-linkbutton m-back" data-options="plain:true,outline:true,back:true">返回</a>
+                </div>
+            </div>
+        </header>
+       
+
+        <div style="padding:0 20px;margin-top:40px;">
+            <input class="easyui-textbox" id="txtStorage" data-options="prompt:'请输入仓库'" style="width:100%;height:38px">
+
+        </div>
+
+    </div>
+
+    <div id="p3" class="easyui-navpanel">
+        <header>
+            <div class="m-toolbar">
+                <div class="m-title">仓位</div>
+                <div class="m-left">
+                    <a href="#" class="easyui-linkbutton m-back" data-options="plain:true,outline:true,back:true">返回</a>
+                </div>
+            </div>
+        </header>
+
+
+        <div style="padding:0 20px;margin-top:40px;">
+            <input class="easyui-textbox" id="txtPlace" data-options="prompt:'请输入仓位'" style="width:100%;height:38px">
+
+        </div>
+
+    </div>
+
+
+</body>
+</html>

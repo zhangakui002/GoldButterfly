@@ -1,0 +1,438 @@
+﻿
+
+<!doctype html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width" />
+        <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=0.8">
+        <meta http-equiv="Access-Control-Allow-Origin" content="*">
+
+        <title>GB</title>
+        <link rel="stylesheet" type="text/css" href="css/themes/bootstrap/easyui.css">
+        <link rel="stylesheet" type="text/css" href="css/themes/mobile.css">
+        <link rel="stylesheet" type="text/css" href="css/themes/icon.css">
+        <script type="text/javascript" src="scripts/jquery.min.js"></script>
+        <script type="text/javascript" src="scripts/jquery.easyui.min.js"></script>
+        <script type="text/javascript" src="scripts/jquery.easyui.mobile.js"></script>
+
+        <script type="text/javascript" src="cordova.js"></script>
+        <script src="scripts/AppGlobal.js"></script>
+
+        <script>
+             
+
+
+
+            function Scan(value) {
+                if (value == '')
+                    return;
+
+                var ph = new parmHelper();
+                ph.Add('MyMID', sessionStorage['BillMID']);
+                ph.Add('TType', sessionStorage['TType']);
+                ph.Add('SN', value);
+                ph.Add('PDANumber', device.uuid);
+                
+
+                var prm = new requestObject();
+                prm.Data = ph.KeyValueArray;
+                prm.RequestName = 'ScanInRPC';
+
+                MaskUtil.mask();
+                AjaxGB('post', prm, function (data) {
+                    MaskUtil.unmask();
+                    if (data.Type == 0) {
+                        GBMessager.Alert(data.Msg);
+                        return;
+                    }
+                    if (data.Data.length >0) {
+                        GBMessager.Alert(data.Data[0].ErrMsg);
+                        return;
+                    }
+                    //... ....
+                }, function (data) {
+                    MaskUtil.unmask();
+                    GBMessager.Alert('发生了错误...');
+                    return;
+                });
+                $('#txtScan').textbox('setText', '');
+
+            }
+
+            NormalOut = {};
+            function Init() {
+                var StorageEvent = {
+                    blur: function () {
+                        if ($('#txtStorage').textbox('getText') == '' && NormalOut.storageName) {
+                            $('#txtStorage').textbox('setText', NormalOut.storageName );
+                        }
+                    },
+                    focus: function () {
+                        $('#txtStorage').textbox('setText', '');
+                    },
+                    input: function (obj) {
+                        var value = $('#txtStorage').textbox('getText');
+                        console.log(value);
+
+                        if (value == '') {
+                            $('#txtStorage').textbox('setText', '');
+                            return;
+                        }
+
+                        if (value.split(',')[0] != 2) {
+                            GBMessager.Alert('二维码不正确', function () {
+                                focusTextBox('txtStorage');
+                            });
+
+                            $('#txtStorage').textbox('setText', '');
+                            return;
+                        }
+
+
+                        var ph = new parmHelper();
+                        ph.Add('FItemID', value.split(',')[1]);
+                        ph.Add('Type', 1);
+
+                        var prm = new requestObject();
+                        prm.Data = ph.KeyValueArray;
+                        prm.RequestName = 'GetStorage';
+
+                        MaskUtil.mask();
+                        LazyAJax(prm, function (data) {
+                            MaskUtil.mask();
+                            NormalOut.storageNo = data.Data[0].FItemID;
+                            NormalOut.storageName= data.Data[0].FName;
+                            focusTextBox('txtPlace');
+                            MaskUtil.unmask();
+                        }, function () {
+                            focusTextBox('txtStorage');
+                        });
+                        $('#txtStorage').textbox('setText', '');
+                    }
+                };
+                var PlaceEvent = {
+                    blur: function () {
+                        if ($('#txtPlace').textbox('getText') == '' && NormalOut.placeName) {
+                            $('#txtPlace').textbox('setText', NormalOut.placeName);
+                        }
+                    },
+                    focus: function () {
+                        $('#txtPlace').textbox('setText', '');
+                    },
+                    input: function (obj) {
+                        var value = $('#txtPlace').textbox('getText');
+                        console.log(value);
+
+                        if (value == '') {
+                            //Storage.Place = value;
+                            //$('#txtStorage').textbox('setText', '');
+                            return;
+                        }
+                        //Storage.Place = value;
+
+                        if (value.split(',')[0] != 5) {
+                            GBMessager.Alert('二维码不正确', function () {
+                                focusTextBox('txtPlace');
+                            });
+
+                            $('#txtPlace').textbox('setText', '');
+                            return;
+                        }
+
+
+                        var ph = new parmHelper();
+                        ph.Add('FItemID', value.split(',')[1]);
+                        ph.Add('Type', 2);
+
+                        var prm = new requestObject();
+                        prm.Data = ph.KeyValueArray;
+                        prm.RequestName = 'GetStorage';
+
+                        MaskUtil.mask();
+                        LazyAJax(prm, function (data) {
+                            MaskUtil.mask();
+                            NormalOut.placeNo= data.Data[0].FSPID;
+                            NormalOut.placeName= data.Data[0].FName;
+                            //$.mobile.go('#p1');
+                            //$(obj.target).blur();
+                            focusTextBox('txtScan');
+                            MaskUtil.unmask();
+                        }, function () {
+                            focusTextBox('txtPlace');
+                        });
+                        $('#txtPlace').textbox('setText', '');
+                    }
+                };
+
+                var ScanEvent = {
+                    input: function (obj) {
+                        var value = $('#txtScan').textbox('getText');
+                        console.log(value);
+
+                        if (value == '') {
+                            $('#txtScan').textbox('setText', '');
+                            return;
+                        }
+
+                        if (value.split(',')[0] != 4) {
+                            GBMessager.Alert('二维码不正确', function () {
+                                focusTextBox('txtScan');
+                            });
+
+                            $('#txtScan').textbox('setText', '');
+                            return;
+                        }
+
+
+                        var ph = new parmHelper();
+                        ph.Add('MyMID', sessionStorage['BillMID']);
+                        ph.Add('TType', sessionStorage['TType']);
+                        ph.Add('SN', value.split(',')[1]);
+                        ph.Add('PDANumber', device.uuid);
+                        console.log(sessionStorage['BillMID']);
+                        console.log(sessionStorage['TType']);
+
+                        var prm = new requestObject();
+                        prm.Data = ph.KeyValueArray;
+
+                        if (NormalOut.Type == 'normalIn') {
+                            prm.RequestName = 'ScanInRPC';
+
+                        } else if (NormalOut.Type == 'normalOut') {
+                            prm.RequestName = 'ScanInFH';
+                        } else if (NormalOut.Type == 'lend') {
+                            prm.RequestName = 'ScanInJC';
+                        } else if (NormalOut.Type == 'return') {
+                            prm.RequestName = 'ScanInGH';
+                        }
+
+
+                        MaskUtil.mask();
+                        LazyAJax(prm, function (data) {
+                            console.log(data);
+                            if (data.Data[0].ErrCode==0) {
+                                $('#dg').datagrid({
+                                    data: data.Data
+                                });
+                            } else {
+                                GBMessager.Alert(data.Data[0].ErrMsg, function () {
+                                    focusTextBox('txtScan');
+                                });
+                            }
+                            //$(obj.target).focus();
+                        }, function () {
+                            focusTextBox('txtScan');
+                        });
+                        $('#txtScan').textbox('setText', '');
+                    }
+                };
+
+                $('#txtStorage').textbox({ events: StorageEvent });
+                if (localStorage['storageName']) {
+                    $('#txtStorage').textbox('setText', localStorage['storageName']);
+
+                    NormalOut.storageNo = localStorage['storageNo'];
+                    NormalOut.storageName = localStorage['storageName'];
+                }
+
+                $('#txtPlace').textbox({ events: PlaceEvent });
+                if (localStorage['placeName']) {
+                    $('#txtPlace').textbox('setText', localStorage['placeName']);
+
+                    NormalOut.placeName = localStorage['placeName'];
+                    NormalOut.placeNo = localStorage['placeNo'];
+
+                }
+
+                $('#txtScan').textbox({ events: ScanEvent });
+            }
+
+
+            
+
+            $(function () {
+
+                var billData = JSON.parse(sessionStorage['billData'])
+
+                NormalOut.Type = GetQueryString('type');
+                 $('#dg').datagrid({
+                     data: billData
+                 });
+
+                 $('#txtStorage').text('setText', localStorage['storageName']);
+                 $('#txtStorageBin').text('setText', localStorage['placeName']);
+
+
+                 $('#btnSubmit').bind('click', function () {
+                     FormSubimt(1);
+                 });
+
+                 $('#btnCancel').bind('click', function () {
+                     FormSubimt(2);
+                 });
+
+                 $('#btnBack').bind('click', function () {
+                     MaskUtil.mask();
+                     $(location).attr('href', 'Main.html');
+                 });
+
+                 $('#txtOriginNo').html(billData[0].FBillNo);
+
+                 function FormSubimt(type)
+                 {
+                     MaskUtil.mask();
+
+
+                     if (!NormalOut.storageNo) {
+                         GBMessager
+                     }
+
+                     var ph = new parmHelper();
+                     ph.Add('MyMID', sessionStorage['BillMID']);
+                     ph.Add('MyTType', sessionStorage['TType']);
+                     ph.Add('MyFMaker', localStorage['userno']);
+                     ph.Add('MyStockID', NormalOut.storageNo);
+                     ph.Add('MyStockPlaceID', NormalOut.placeNo);
+                     ph.Add('PDANumber', device.uuid);
+                     ph.Add('SubType', type);
+
+
+                     var prm = new requestObject();
+                     prm.Data = ph.KeyValueArray;
+
+
+                     if (NormalOut.Type == 'normalIn') {
+                         prm.RequestName = 'ScanInSubmitRPC';
+
+                     } else if (NormalOut.Type == 'normalOut') {
+                         prm.RequestName = 'ScanInSubmitFH';
+
+                     } else if (NormalOut.Type == 'lend') {
+                         prm.RequestName = 'ScanInSubmitJC';
+
+                     } else if (NormalOut.Type == 'return') {
+                         prm.RequestName = 'ScanInSubmitGH';
+
+                     }
+
+                     MaskUtil.mask();
+
+                     LazyAJax(prm, function (data) {
+                         if (data.Data[0].ErrCode == 0) {
+                             GBMessager.Alert(data.Data[0].ErrMsg, function () {
+                                 MaskUtil.mask();
+                                 $(location).attr('href', 'Main.html');
+                             });
+                             // 成功... ...
+                         }
+                         else {
+                             GBMessager.Alert(data.Data[0].ErrMsg, function () {
+                                 focusTextBox('txtScan');
+                             });
+                             //失败... ...
+                         }
+                     });
+                 }
+
+                 Init();
+
+                 focusTextBox('txtScan');
+            });
+
+
+        </script>
+
+
+
+        <style>
+
+            #tableField {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+            #tableField  tr > td:first-child {
+                width:40%;
+                
+            }
+
+            #tableField tr > td:nth-child(2) {
+                text-align: right;
+                width: 50%;
+            }
+
+            #divBtnGroup > div {
+                text-align:center
+            }
+
+        </style>
+    </head>
+    <body>
+
+        <table class="grid" id="tableField" data-options="fit:true;">
+            <tr>
+                <td><label for="txtOriginNo">源单号:</label></td>
+                <td>
+                    <label name="txtOriginNo" id="txtOriginNo"></label>
+                </td>
+            </tr>
+            
+            <tr>
+                <td>
+                    <label for="txtStorage">仓库:</label>
+                </td>
+                <td>
+                    <input id="txtStorage" class="easyui-textbox" style="height:38px" name="txtStorage" >
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <label for="txtPlace">仓位:</label>
+                </td>
+                <td>
+                    <input id="txtPlace" class="easyui-textbox" style="height:38px" name="txtPlace" >
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <label for="txtScan">扫码框:</label>
+                </td>
+                <td>
+                    <input id="txtScan" name="txtScan" style="height:38px" data-options="prompt:''" class="easyui-textbox" >
+                </td>
+            </tr>
+
+           </table>
+            
+
+            <div style="height:400px;overflow:scroll">
+                <table id="dg" data-options="header:'#hh',singleSelect:true,border:false,fit:true,fitColumns:true,scrollbarSize:0">
+                    <thead>
+                        <tr>
+                            <th data-options="field:'FName',width:80">物料名</th>
+                            <th data-options="field:'FModel',width:100">规格</th>
+                            <th data-options="field:'FQty',width:80,align:'right'">数量</th>
+                            <th data-options="field:'FSQty',width:80,align:'right'">扫描</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        
+        <div id="divBtnGroup">
+            <div>
+                <a href="#" id="btnSubmit" class="easyui-linkbutton" style="width:100px;height:40px;margin-top:20px;"><span style="font-size:16px">提交</span></a>
+
+                <a href="#" id="btnCancel" class="easyui-linkbutton" style="width:100px;height:40px;margin-top:20px; margin-left:10px;"><span style="font-size:16px">取消</span></a>
+
+                <a href="#" id="btnBack" class="easyui-linkbutton"   style="width:100px;height:40px;margin-top:20px;margin-left:10px;"><span style="font-size:16px">返回</span></a>
+
+            </div>
+            
+        </div>
+
+           
+</body>
+</html>

@@ -1,0 +1,77 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=0.8">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+
+    <title>GB</title>
+    <link rel="stylesheet" type="text/css" href="css/themes/bootstrap/easyui.css">
+    <link rel="stylesheet" type="text/css" href="css/themes/mobile.css">
+    <link rel="stylesheet" type="text/css" href="css/themes/icon.css">
+    <script type="text/javascript" src="scripts/jquery.min.js"></script>
+    <script type="text/javascript" src="scripts/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="scripts/jquery.easyui.mobile.js"></script>
+
+
+    <script src="scripts/AppGlobal.js"></script>
+    <script src="scripts/md5.min.js"></script>
+    <script type="text/javascript" src="cordova.js"></script>
+
+
+    <script>
+
+        $(function () {
+
+            document.addEventListener("deviceready", OnIndexReady, false);
+
+            function OnIndexReady() {
+                //$(location).attr('href', 'Login.html');
+                //1.判断有没有文件，没有的就要新建
+                //2.读取文件中的URL到Setting中
+                GBFile.CheckIfFileExists(function (fs) {
+                    GBFile.ReadFile(fs, function (json) {
+                        var j = JSON.parse(json);
+                        localStorage['serverurl'] = j.serverurl;
+                        $(location).attr('href', 'Login.html');
+
+                    });
+                }, function () {
+                    GBFile.CreateFile(function (dirEntry) {
+                        dirEntry.getFile(GBFile.SettingFile, { create: true, exclusive: false }, function (fileEntry) {
+                            //alert("Create the file: " + fileEntry.name + ', ' + fileEntry.fullPath);
+                            var j = {};
+                            j.serverurl = GBSetting.DefaultURL;
+                            var dataObj = new Blob([JSON.stringify(j)], { type: 'text/plain' });
+                            GBFile.WriteFile(fileEntry, dataObj, function () {
+                                $(location).attr('href', 'Login.html');
+                            });
+                        }, function () {
+                            GBMessager.Alert('无法创建文件');
+                        });
+                    });
+                });
+
+                //GBFile.GetSetting(function (text) { alert(text); });
+
+
+
+                //$(location).attr('href', 'Login.html');
+
+
+
+            }
+
+        });
+
+
+    </script>
+
+</head>
+    
+
+    <body>
+       正在初始化...
+    </body>
+</html>
